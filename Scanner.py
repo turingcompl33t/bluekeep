@@ -352,7 +352,7 @@ class RDP():
             b"\x01\x00"                                                           # securityHeader flags
             b"\x00\x00"                                                           # securityHeader flagsHi
             b"%s" % (bitlen).to_bytes(4, byteorder="little") +                    # securityPkt length
-            b"%s" % encrypted_client_random +                                        # 64 bytes encrypted client random 
+            b"%s" % encrypted_client_random +                                     # 64 bytes encrypted client random 
             b"\x00\x00\x00\x00\x00\x00\x00\x00"                                   # 8 bytes rear padding
         )
 
@@ -419,10 +419,12 @@ class RDP():
         pdu += "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         pdu += "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         pdu += "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
         return binascii.unhexlify(pdu)
 
 # -----------------------------------------------------------------------------
 # RDP Internal Crypto
+# (should probably just use an existing SSL/TLS module)
 
     def rdp_encrypted_pkt(self, data, rc4_enc_key, hmac_key, flags=b"\x08\x00", flags_hi=b"\x00\x00", channel_id=b"\x03\xeb"):
         user_data_len = len(data) + 12
