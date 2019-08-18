@@ -1,10 +1,11 @@
 # Scanner.py
 # CVE-2019-0708 "Bluekeep" Vulnerability Scanner.
 #
-# Usage: Scanner.py <Host>
+# Usage: Scanner.py <Host> [-v]
 #
 # Arguments:
-#   Hpst - IP address of the host to scan
+#   Host - IP address of the host to scan
+#   -v   - Enable verbose output (optional)
 #
 # Confirmed Targets:
 #   - Windows 7
@@ -26,41 +27,29 @@ import hashlib
 import binascii
 import argparse
 
-OS_FINGERPRINTS = {
-    "2000/xp":     "0300000b06d00000123400",
-    "2003":        "030000130ed000001234000300080002000000",
-    "2008":        "030000130ed000001234000200080002000000",
-    "win7/2008R2": "030000130ed000001234000209080002000000",
-    "2008R2DC":    "030000130ed000001234000201080002000000",
-    "2012R2/8":    "030000130ed00000123400020f080002000000"
-}
-
 # -----------------------------------------------------------------------------
 # Entry Point
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("host", metavar="Host", help="The IP address of the host to scan.")
-    parser.add_argument("-f", "--fingerprint", action="store_true", help="Attempt to fingerprint the target OS prior to scan.")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output.")
 
     args = parser.parse_args()
 
-    target_ip      = args.host
-    do_fingerprint = args.fingerprint
+    target_ip = args.host
+    verbose   = args.verbose
 
-    if do_fingerprint:
-        try:
-            os = fingerprint_os(target_ip, 3389)
-        except Exception:
-            os = "Unknown"
+    log("Scanning target at {}".format(target_ip))
 
     rdp_ctx = RDP()
-    res = rdp_ctx.run_scan(target_ip, 3389)
+    res = rdp_ctx.run_scan(target_ip, 3389, verbose)
 
+    log("Scan complete for target at {}:".format(target_ip))
     if res:
-        print("VULN")
+        log("Target VULNERABLE")
     else:
-        print("NOT VULN")
+        log("Target NOT VULNERABLE")
 
     sys.exit(0)
 
@@ -89,6 +78,9 @@ def fingerprint_os(ip, port):
         return fingerprint_map[res]
     return ""
 
+def log(msg):
+    print("[+] {}".format(msg))
+
 # -----------------------------------------------------------------------------
 # RDP Class Implementation
 
@@ -98,16 +90,20 @@ class RDP():
     """
 
     def __init__(self):
-        self.sock = None
+        self.sock    = None
+        self.verbose = False
 
     # open connection and run the scan
-    def run_scan(self, ip, port):
-        self.sock = create_socket(ip, port)
+    def run_scan(self, ip, port, verbose):
+        self.sock    = create_socket(ip, port)
+        self.verbose = verbose 
         
         res = self.rdp_scan_vuln()
 
         self.sock.close()
-        self.sock = None
+
+        self.sock    = None
+        self.verbose = False
 
         return res
 
@@ -230,8 +226,9 @@ class RDP():
         return tptk_header + body
 
 # -----------------------------------------------------------------------------
-# This Thing
+# Specialized Response Parsing
 
+    # parse security exchange data from server response
     def rdp_parse_server_data(self, pkt):
         ptr = 0
         rdp_pkt = pkt[0x49:]
@@ -503,19 +500,17 @@ class RDP():
 # -----------------------------------------------------------------------------
 # Utility Functions
 
-    def log(self, message):
-        pass
+    # log if verbose output enabled
+    def log_v(self, msg):
+        if self.verbose:
+            self.log(msg)
+
+    # unconditionally log
+    def log(self, msg):
+        print("[+] {}".format(msg))
 
     def bin_to_hex(self, data):
         return "".join("%.2x" % i for i in data)
-
-"""
-class TestPOC(POCBase):
-
-
-
-
-"""
 
 # -----------------------------------------------------------------------------
 # RC4 Class Implementation
