@@ -22,3 +22,4 @@ Proof of concept RCE via exploitation of the Bluekeep vulnerability.
 - [Slides](./resources/Slides.pdf). The first "RCE guide" released to the public. 
 - [Playing with the Bluekeep Metasploit Module](https://klaus.hohenpoelz.de/playing-with-the-bluekeep-metasploit-module.html). An early blog post regarding tweaks needed to get the exploit to work on a particular platform.
 - [How to Exploit Bluekeep Vulnerability with Metasploit](https://pentest-tools.com/blog/bluekeep-exploit-metasploit/). Another early post demonstrating the platform-dependent tweaks needed for successful exploitation.
+- [Three Ways to Write Data into the Kernel with RDP PDU](https://unit42.paloaltonetworks.com/exploitation-of-windows-cve-2019-0708-bluekeep-three-ways-to-write-data-into-the-kernel-with-rdp-pdu/). Potential kernel pool grooming methods.
